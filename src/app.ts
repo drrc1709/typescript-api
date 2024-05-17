@@ -1,18 +1,26 @@
-import express from "express";
-import path from "path";
+// src/app.ts
 
-import { loadApiEndpoints } from "./controllers/api";
+import express, { Application } from 'express';
+import bodyParser from 'body-parser';
+import multer from 'multer';
+import { RegisterController } from './controllers/RegisterController';
 
-// Create Express server
-const app = express();
+const app: Application = express();
+const port = process.env.PORT || 3000;
+const upload = multer({ dest: 'uploads/' });
 
-// Express configuration
-app.set("port", process.env.PORT ?? 3000);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(express.static(path.join(__dirname, "../public"), { maxAge: 31557600000 }));
+const numberController = new RegisterController();
 
-loadApiEndpoints(app);
+// Ruta para manejar la recepción de un número o un archivo CSV
+app.post('/number-or-csv', upload.single('file'), (req, res) => {
+    numberController.handleNumberOrCsv(req, res);
+});
+
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
 
 export default app;
